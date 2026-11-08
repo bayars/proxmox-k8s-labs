@@ -20,3 +20,27 @@ variable "pm_tls_insecure" {
   type        = bool
   default     = true
 }
+
+variable "vm_cores" {
+  description = "vCPU cores per node"
+  type        = number
+  default     = 2
+}
+
+variable "vm_memory" {
+  description = "Memory per node in MB"
+  type        = number
+  default     = 2048
+}
+
+variable "vm_disk_size" {
+  description = "Boot disk size; must be >= the template's disk size"
+  type        = string
+  default     = "20G"
+}
+
+variable "vm_storage" {
+  description = "Proxmox storage for the boot and cloud-init disks"
+  type        = string
+  default     = "local-lvm"
+}

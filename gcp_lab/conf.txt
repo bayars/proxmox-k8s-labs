@@ -3,7 +3,7 @@ frr.conf
 ---
 frr defaults traditional
 
-ervice integrated-vtysh-config
+service integrated-vtysh-config
 hostname k8s-controller
 
 router bgp 65000

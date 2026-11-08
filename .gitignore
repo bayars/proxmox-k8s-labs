@@ -24,4 +24,4 @@ override.tf.json
 !.env.example
 
 # Real Ceph CSI secret (commit the .example instead)
-k8s-manifests/ceph/csi-rbd-secret.yaml
+k8s_manifests/ceph/csi-rbd-secret.yaml

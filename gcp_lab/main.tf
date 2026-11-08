@@ -1,3 +1,12 @@
+terraform {
+  required_providers {
+    google = {
+      source  = "hashicorp/google"
+      version = "~> 6.14"
+    }
+  }
+}
+
 # Main Terraform file to deploy VM instances in Google Cloud Platform
 
 variable "gcp_project_id" {
@@ -7,8 +16,8 @@ variable "gcp_project_id" {
 
 provider "google" {
   project = var.gcp_project_id
-  region  = "us-central1"      # Replace with your desired region
-  zone    = "us-central1-a"    # Replace with your desired zone
+  region  = "us-central1"   # Replace with your desired region
+  zone    = "us-central1-a" # Replace with your desired zone
 }
 
 # Create the dtmgmt network and subnet
@@ -181,13 +190,13 @@ provider "google" {
 
 
 resource "google_compute_instance" "k8s_controller" {
-  name         = "k8s-controller"
-  machine_type = "n1-standard-4"     # Replace with your desired machine type
+  name           = "k8s-controller"
+  machine_type   = "n1-standard-4" # Replace with your desired machine type
   can_ip_forward = true
 
   boot_disk {
     initialize_params {
-      image = "ubuntu-os-cloud/ubuntu-2204-jammy-v20241218"
+      image = "ubuntu-os-cloud/ubuntu-2204-lts"
     }
   }
 
@@ -212,13 +221,13 @@ resource "google_compute_instance" "k8s_controller" {
 }
 
 resource "google_compute_instance" "k8s_worker1" {
-  name         = "k8s-worker1"
-  machine_type = "n1-standard-4"
+  name           = "k8s-worker1"
+  machine_type   = "n1-standard-4"
   can_ip_forward = true
 
   boot_disk {
     initialize_params {
-      image = "ubuntu-os-cloud/ubuntu-2204-jammy-v20241218"
+      image = "ubuntu-os-cloud/ubuntu-2204-lts"
     }
   }
 
@@ -243,12 +252,13 @@ resource "google_compute_instance" "k8s_worker1" {
 }
 
 resource "google_compute_instance" "k8s_worker2" {
-  name         = "k8s-worker2"
-  machine_type = "n1-standard-4"
+  name           = "k8s-worker2"
+  machine_type   = "n1-standard-4"
+  can_ip_forward = true
 
   boot_disk {
     initialize_params {
-      image = "ubuntu-os-cloud/ubuntu-2204-jammy-v20241218"
+      image = "ubuntu-os-cloud/ubuntu-2204-lts"
     }
   }
 
