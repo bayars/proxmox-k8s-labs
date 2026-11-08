@@ -1,0 +1,4 @@
+# Copy to terraform.tfvars and fill in your values
+pm_api_url          = "https://<proxmox-host>:8006/api2/json"
+pm_api_token_id     = "root@pam!terraform"
+pm_api_token_secret = "<your-token-secret>"

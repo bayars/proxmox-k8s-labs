@@ -1,0 +1,89 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: lab9server
+spec:
+  podSelector:
+    matchLabels:
+      target: "yes"
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+    - from:
+      - namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: default
+        podSelector:
+          matchLabels:
+            access: "yes"
+      ports:
+        - protocol: TCP
+          port: 80
+  egress:
+  - {}
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: sleepybox1
+    access: "yes"
+  name: sleepybox1
+  namespace: default
+spec:
+  containers:
+  - args:
+    - sleep
+    - "3600"
+    image: busybox:latest
+    name: sleepybox1
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: sleepybox2
+    access: "noway"
+  name: sleepybox2
+  namespace: default
+spec:
+  containers:
+  - args:
+    - sleep
+    - "3600"
+    image: busybox:latest
+    name: sleepybox2
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: lab9server
+    target: "yes"
+  name: lab9server
+  namespace: lab9server
+spec:
+  containers:
+  - image: nginx:latest
+    name: lab9server
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}

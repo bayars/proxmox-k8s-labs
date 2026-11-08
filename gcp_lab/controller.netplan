@@ -1,0 +1,28 @@
+network:
+  version: 2
+  ethernets:
+    ens5:
+      dhcp4: yes
+    ens6:
+      dhcp4: yes
+  tunnels:
+    vxlan100:
+      mode: vxlan
+      id: 100
+      port: 4789
+      mac-learning: false
+      local: 10.128.0.31
+      remote: 10.128.0.32
+    vxlan110:
+      mode: vxlan
+      id: 110
+      port: 4789
+      mac-learning: false
+      local: 10.128.0.31
+      remote: 10.128.0.30
+  bridges:
+    br0:
+      interfaces: [vxlan100, vxlan110]
+      dhcp4: false
+      addresses: [172.20.10.1/24]
+

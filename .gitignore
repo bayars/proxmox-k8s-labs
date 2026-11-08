@@ -1,0 +1,27 @@
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Secrets
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+.env
+.env.*
+
+# Editor swap files
+*.swp
+*.swo
+*~
+!.env.example
+
+# Real Ceph CSI secret (commit the .example instead)
+k8s-manifests/ceph/csi-rbd-secret.yaml

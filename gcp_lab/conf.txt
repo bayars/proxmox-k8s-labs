@@ -1,0 +1,71 @@
+controller
+frr.conf
+---
+frr defaults traditional
+
+ervice integrated-vtysh-config
+hostname k8s-controller
+
+router bgp 65000
+ bgp router-id 10.128.0.28
+ neighbor fabric peer-group
+ neighbor fabric remote-as 65000
+ neighbor fabric update-source 10.128.0.28
+ neighbor 10.128.0.27 peer-group fabric
+ neighbor 10.128.0.29 peer-group fabric
+
+ address-family l2vpn evpn
+   neighbor fabric activate
+   advertise-all-vni
+ exit-address-family
+---
+
+ip link add vxlan0 type vxlan id 10 dev ens4 local 10.128.0.28 dstport 4789
+ip a a 172.20.10.1/24 dev vxlan0
+
+worker1
+frr.conf
+---
+frr defaults traditional
+
+service integrated-vtysh-config
+hostname k8s-worker1  # Change to worker2 for the second node
+
+router bgp 65000
+ bgp router-id 10.128.0.27
+ neighbor fabric peer-group
+ neighbor fabric remote-as 65000
+ neighbor fabric update-source 10.128.0.27
+ neighbor 10.128.0.28 peer-group fabric
+
+ address-family l2vpn evpn
+   neighbor fabric activate
+ exit-address-family
+---
+
+ip link add vxlan0 type vxlan id 10 dev ens4 local 10.128.0.27 remote 10.128.0.28 dstport 4789
+ip a a 172.20.10.102/24 dev vxlan0
+
+
+worker2
+frr.conf
+---
+frr defaults traditional
+
+service integrated-vtysh-config
+hostname k8s-worker2  # Change to worker2 for the second node
+
+router bgp 65000
+ bgp router-id 10.128.0.29
+ neighbor fabric peer-group
+ neighbor fabric remote-as 65000
+ neighbor fabric update-source 10.128.0.29
+ neighbor 10.128.0.28 peer-group fabric
+
+ address-family l2vpn evpn
+   neighbor fabric activate
+ exit-address-family
+---
+
+ip link add vxlan0 type vxlan id 10 dev ens4 local 10.128.0.29 remote 10.128.0.28 dstport 4789
+ip a a 172.20.10.101/24 dev vxlan0
