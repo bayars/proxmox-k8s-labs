@@ -1,0 +1,7 @@
+terraform.tfvars
+*.tfstate*
+.terraform/
+crash.log
+tofu.env
+tofu.env
+_out/

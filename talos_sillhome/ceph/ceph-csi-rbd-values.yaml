@@ -1,0 +1,29 @@
+# Ceph on the Proxmox host (single node, pool size 1). Credentials live ONLY in the
+# k8s Secret csi-rbd-secret (never in git): kubectl -n ceph-csi create secret generic csi-rbd-secret ...
+csiConfig:
+  - clusterID: 80c5113c-86f8-4642-a1db-b2422fc6e5d7
+    monitors:
+      - 10.0.0.79:6789
+provisioner:
+  replicaCount: 1
+storageClass:
+  create: true
+  name: ceph-rbd
+  clusterID: 80c5113c-86f8-4642-a1db-b2422fc6e5d7
+  pool: kubernetes
+  imageFeatures: layering
+  reclaimPolicy: Delete
+  allowVolumeExpansion: true
+  fstype: ext4
+  mountOptions: []
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true"
+secret:
+  create: false
+  name: csi-rbd-secret
+cephconf: |
+  [global]
+    auth_cluster_required = cephx
+    auth_service_required = cephx
+    auth_client_required = cephx
+    mon_host = 10.0.0.79:6789
