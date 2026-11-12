@@ -6,6 +6,31 @@ csiConfig:
       - 10.0.0.79:6789
 provisioner:
   replicaCount: 1
+  # Keep the controller off the starved 2-vCPU control plane (the cp1 taint already blocks new pods; this survives a taint change).
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - {key: node-role.kubernetes.io/control-plane, operator: DoesNotExist}
+  # Requests only (no limits: a tight limit kills the sidecars and the CSI socket drops). Go sidecars idle at ~10-20Mi.
+  # Leader election defaults are 15s/10s/5s; under CPU starvation the lease renew misses and the sidecar exits. 60s/45s/10s tolerates it.
+  provisioner:
+    resources: {requests: {cpu: 10m, memory: 24Mi}}
+    # the chart prepends "--" to each entry: write them without dashes
+    extraArgs: ["leader-election-lease-duration=60s","leader-election-renew-deadline=45s","leader-election-retry-period=10s"]
+  attacher:
+    resources: {requests: {cpu: 10m, memory: 24Mi}}
+    # the chart prepends "--" to each entry: write them without dashes
+    extraArgs: ["leader-election-lease-duration=60s","leader-election-renew-deadline=45s","leader-election-retry-period=10s"]
+  resizer:
+    resources: {requests: {cpu: 10m, memory: 24Mi}}
+    # the chart prepends "--" to each entry: write them without dashes
+    extraArgs: ["leader-election-lease-duration=60s","leader-election-renew-deadline=45s","leader-election-retry-period=10s"]
+  snapshotter:
+    resources: {requests: {cpu: 10m, memory: 24Mi}}
+    # the chart prepends "--" to each entry: write them without dashes
+    extraArgs: ["leader-election-lease-duration=60s","leader-election-renew-deadline=45s","leader-election-retry-period=10s"]
 storageClass:
   create: true
   name: ceph-rbd
@@ -27,3 +52,4 @@ cephconf: |
     auth_service_required = cephx
     auth_client_required = cephx
     mon_host = 10.0.0.79:6789
+# Nodeplugin / shared plugin requests live in ceph-csi-rbd-values.step2-nodeplugin.yaml (apply separately, see PROXMOX.md).

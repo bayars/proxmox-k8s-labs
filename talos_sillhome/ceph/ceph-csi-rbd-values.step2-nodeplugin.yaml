@@ -1,0 +1,9 @@
+# Step 2, applied on its own: helm upgrade ... -f ceph-csi-rbd-values.yaml -f ceph-csi-rbd-values.step2-nodeplugin.yaml
+# nodeplugin.plugin.resources is shared by csi-rbdplugin in the nodeplugin DaemonSet AND by csi-rbdplugin, csi-rbdplugin-controller and
+# liveness-prometheus in the provisioner Deployment. Changing it rolls the DaemonSet (one nodeplugin pod per node, restarts). Already-mapped and
+# mounted RBD volumes (the DB's) stay mounted; only new mount/unmount operations on that node fail during the restart. Do it off-hours, one node at a time.
+nodeplugin:
+  plugin:
+    resources: {requests: {cpu: 20m, memory: 48Mi}}
+  registrar:
+    resources: {requests: {cpu: 5m, memory: 16Mi}}

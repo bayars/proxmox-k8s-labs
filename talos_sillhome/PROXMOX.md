@@ -190,3 +190,14 @@ Not part of the cluster, but SMART shows 2 pending sectors, 297 reallocation eve
 - **e2e**: runs on its own compose stack, never on the live cluster (the live DB holds real listings): `home-search-e2e/docker-compose.e2e.yml`. For upgrade and rollback checks use `home-search-e2e/scripts/run_upgrade_e2e.sh` with `OLD_IMAGE` and `NEW_IMAGE` set.
 - **Ceph copies**: two copies on one host (no host-level redundancy). Keep Proxmox backups of the Talos VMs and take CNPG backups before upgrades.
 - **Upgrades**: Talos upgrades keep the Ceph volumes (they are on the host), which is why RBD was chosen over local storage.
+
+### Memory and sizing
+
+- Each node has ~2.4 GB allocatable; before the 2026-11 right-sizing, requests were 76-78% allocated on `sill-cp1`/`sill-w1` and limits 127-202%.
+- Measured peak (cgroup `memory.peak`, 2026-11-12): indexer-crawl 1.56 GiB (limit 3 GiB), keycloak 0.65 GiB (1 GiB), web 0.21 GiB (768 MiB), searxng 0.19 GiB, indexer-light 0.12 GiB, HAProxy 0.04 GiB, Postgres 0.42 GiB (1.5 GiB). `kubectl top` does not work (no metrics-server); read `/sys/fs/cgroup/memory.current` with `kubectl exec`.
+- `indexer-crawl` and `indexer-light` use `strategy: Recreate` (`values/proxmox.app.yaml`), so a rollout stops the old pod first; it never needs a second crawl pod. Cost: a short gap in crawling during each rollout.
+- The CloudNativePG operator is kept off the control plane by node affinity in `helmfile.yaml.gotmpl` (proxmox environment only).
+- Host RAM: 39 GB minus VMs 101 (12 GB), 102 (12.4 GB) and the three Talos VMs (9 GB) leaves ~5.6 GB for Proxmox itself, Ceph and cache. Adding 1 GB to each worker (+2 GB) is affordable but leaves ~3.6 GB; prefer `sill-w1` first (highest limit overcommit), one VM at a time.
+
+**Incident 2026-11-12.** sillhome.com returned 503 for several minutes. On 2-vCPU nodes the crawler (Chromium) used the CPU, so the `web` pod on `sill-w1` missed its 1 s probe timeouts and restart-looped (15 restarts). The crawl was scaled to 0 to recover. Separately, `ceph-csi-rbd-provisioner` (on the control plane, no requests) crash-looped about 690 times: its sidecars lost the CSI driver socket and exited; the DB volumes stayed attached, but a new PVC would have hung. Changes: web probe timeouts 5 s, startup window 5 min, liveness tolerates 6 failures, 2 workers, CPU request 250m; crawl gets a 1000m CPU limit, a 250m request and a soft anti-affinity to web; ceph-csi provisioner is kept off the control plane, with sidecar requests and 60 s leader-election leases (`ceph/ceph-csi-rbd-values.yaml`; nodeplugin requests are a separate later step in `ceph/ceph-csi-rbd-values.step2-nodeplugin.yaml`). The crawl comes back with the app release (the chart sets replicas 1), or by `kubectl -n home-search scale deploy/home-search-indexer-crawl --replicas=1`.
+
